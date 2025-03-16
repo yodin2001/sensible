@@ -26,9 +26,9 @@ func getDeviceMetaData() mqtt.DeviceMetadata {
 	return dmd
 }
 
-func getSensorMetaData(id string, name string, icon string, unit string) mqtt.DeviceRegistration {
+func getSensorMetaData(id string, name string, icon string, unit string, deviceClass string) mqtt.DeviceRegistration {
 
-	var deviceClass, stateTopic, availabilityTopic string
+	var stateTopic, availabilityTopic string
 	if id == "heartbeat" {
 		stateTopic = settings.All.Discovery.Prefix + "/sensor/" + settings.All.Discovery.DeviceName + "/availability"
 		availabilityTopic = settings.All.Discovery.Prefix + "/sensor/" + settings.All.Discovery.DeviceName + "/always-available"
@@ -108,7 +108,7 @@ func StartProcessing(wg *sync.WaitGroup) {
 		defer wg.Done()
 
 		for _, p := range settings.All.Plugins {
-			mqtt.RegisterSensor(getSensorMetaData(p.SensorId, p.Name, p.Icon, p.UnitOfMeasurement))
+			mqtt.RegisterSensor(getSensorMetaData(p.SensorId, p.Name, p.Icon, p.UnitOfMeasurement, p.DeviceClass))
 		}
 
 		log.Info("Entering MQTT message processing loop...")
