@@ -4,6 +4,7 @@ import (
 	"TheTinkerDad/sensible/utility"
 	"errors"
 	"os"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
@@ -50,6 +51,8 @@ type Plugin struct {
 	UnitOfMeasurement string
 	Icon              string
 	DeviceClass       string
+	Period            float32
+    LastExecuted      time.Time
 }
 
 var All AllSettings
@@ -73,15 +76,17 @@ func GenerateDefaults() {
 	All.Mqtt = MqttSettings{"127.0.0.1", "1883", "", "", "sensible_mqtt_client"}
 	All.Discovery = DiscoverySettings{"sensible-demo", "homeassistant"}
 	All.Api = ApiSettings{Port: 8090, Enabled: false, Token: utility.NewRandomUUID()}
-	All.Plugins = make([]Plugin, 7)
-	All.Plugins[0] = Plugin{"Heartbeat", "internal", "heartbeat", "", "", "mdi:wrench-check", ""}
+	All.Plugins = make([]Plugin, 1)
+	
+	All.Plugins[0] = Plugin{"Heartbeat", "internal", "heartbeat", "", "", "mdi:wrench-check", "", 1, time.Now()}
+	/*
 	All.Plugins[1] = Plugin{"Boot Time", "internal", "boot_time", "", "", "mdi:clock", ""}
 	All.Plugins[2] = Plugin{"System Time", "internal", "system_time", "", "", "mdi:clock", ""}
 	All.Plugins[3] = Plugin{"Root Disk Free", "script", "root_free", "root_free.sh", "GB", "mdi:harddisk", ""}
 	All.Plugins[4] = Plugin{"Host IP Address", "script", "ip_address", "ip_address.sh", "", "mdi:network", ""}
 	All.Plugins[5] = Plugin{"Hostname", "script", "hostname", "hostname.sh", "", "mdi:network", ""}
 	All.Plugins[6] = Plugin{"Platform", "script", "platform", "platform.sh", "", "mdi:wrench-check", ""}
-
+	*/
 	yaml, err := yaml.Marshal(&All)
 	if err != nil {
 		log.Fatal(err)

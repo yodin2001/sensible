@@ -76,7 +76,13 @@ func updateSensorBootTime() {
 
 // This updates sensors based on scripts
 
-func updateSensorWithScript(p settings.Plugin) {
+func updateSensorWithScript(p *settings.Plugin) {
+	now := time.Now()
+
+	if now.Sub(p.LastExecuted) < time.Duration(p.Period)*time.Second {
+		return
+	}
+	p.LastExecuted = now
 
 	log.Tracef("Executing %s%s", settings.All.General.ScriptLocation, p.Script)
 	// Using pipe here looks like an overkill, but can be useful later...
@@ -89,6 +95,7 @@ func updateSensorWithScript(p settings.Plugin) {
 	value := strings.TrimSuffix(b.String(), "\n")
 	mqtt.SendSensorValue(p.SensorId, value)
 }
+
 
 var SensorUpdater chan string
 
@@ -121,11 +128,11 @@ func StartProcessing(wg *sync.WaitGroup) {
 				default:
 					mqtt.SendAlwaysAvailableMessage()
 					mqtt.SendDeviceAvailability("Online")
-					for _, p := range settings.All.Plugins {
-						switch p.Kind {
+					for i := range settings.All.Plugins {
+						switch settings.All.Plugins[i].Kind {
 						case "internal":
 							//TODO: This should be reflection based!
-							switch p.SensorId {
+							switch settings.All.Plugins[i].SensorId {
 							case "boot_time":
 								updateSensorBootTime()
 							case "system_time":
@@ -133,14 +140,14 @@ func StartProcessing(wg *sync.WaitGroup) {
 							default:
 							}
 						case "script":
-							updateSensorWithScript(p)
+							updateSensorWithScript(&settings.All.Plugins[i])
 						default:
 						}
 					}
 				}
 			}
 			// TODO: This sould be removed and update periodicity should be configurable on a per-sensor basis
-			time.Sleep(10 * time.Second)
+			time.Sleep(1 * time.Second)
 		}
 	}()
 }
